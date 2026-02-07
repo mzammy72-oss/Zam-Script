@@ -1,6 +1,6 @@
 --[[
-    KELZZ-AI v19.0: THE VOID BLIND
-    FITUR: VOID TOOL (FE BLIND), TITAN ZONE 200, FLY
+    KELZZ-AI v20.0: REAL VOID REPLICATION
+    FITUR: ITEM RESIZER (FE BLIND), TITAN ZONE 200, FLY
     TARGET: ROBLOX MOBILE (A14 OPTIMIZED)
 ]]
 
@@ -13,19 +13,19 @@ local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 
 -- 1. BERSIHKAN GUI LAMA
-if CoreGui:FindFirstChild("KelzzVoidGui") then
-    CoreGui:FindFirstChild("KelzzVoidGui"):Destroy()
+if CoreGui:FindFirstChild("KelzzRealVoid") then
+    CoreGui:FindFirstChild("KelzzRealVoid"):Destroy()
 end
 
 -- 2. GUI BASE
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KelzzVoidGui"
+ScreenGui.Name = "KelzzRealVoid"
 ScreenGui.Parent = CoreGui
 
 -- TOMBOL TOGGLE (Huruf K)
 local OpenBtn = Instance.new("TextButton")
 OpenBtn.Parent = ScreenGui
-OpenBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Hitam Pekat
+OpenBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 OpenBtn.Position = UDim2.new(0, 10, 0.4, 0)
 OpenBtn.Size = UDim2.new(0, 50, 0, 50)
 OpenBtn.Text = "Z"
@@ -40,23 +40,23 @@ Instance.new("UIStroke", OpenBtn).Thickness = 2
 -- MAIN FRAME
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.Position = UDim2.new(0.2, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 250, 0, 420) 
+MainFrame.Size = UDim2.new(0, 250, 0, 400) 
 MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
-Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(100, 100, 100)
+Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(255, 255, 255)
 Instance.new("UIStroke", MainFrame).Thickness = 2
 
 -- JUDUL
 local Title = Instance.new("TextLabel")
 Title.Parent = MainFrame
-Title.Text = "Zam New V5"
+Title.Text = "Zam New V6"
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextColor3 = Color3.fromRGB(200, 200, 200)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 18
 
@@ -176,54 +176,60 @@ local function CreateSlider(Text, Min, Max, Default, Callback)
 end
 
 -- ====================================================
--- BAGIAN 1: VOID BLIND (FITUR BARU)
+-- BAGIAN 1: REAL VOID REPLICATION (LOGIC BARU)
 -- ====================================================
-CreateLabel("--- VOID BLIND (FE) ---")
-local VoidBtn = CreateBtn("GET VOID TOOL (HITAM)", Color3.fromRGB(20, 20, 20), function() end)
+CreateLabel("--- FE VOID (PEGANG ITEM) ---")
+local VoidBtn = CreateBtn("UBAH ITEM JADI VOID", Color3.fromRGB(50, 50, 50), function() end)
 
 VoidBtn.MouseButton1Click:Connect(function()
-    if Plr.Backpack:FindFirstChild("THE VOID") or (Plr.Character and Plr.Character:FindFirstChild("THE VOID")) then
-        VoidBtn.Text = "SUDAH ADA DI INVENTORY!"
+    local Char = Plr.Character
+    if not Char then return end
+    
+    local Tool = Char:FindFirstChildOfClass("Tool")
+    if not Tool then
+        VoidBtn.Text = "PEGANG ITEM GAME DULU!"
         wait(1)
-        VoidBtn.Text = "GET VOID TOOL (HITAM)"
+        VoidBtn.Text = "UBAH ITEM JADI VOID"
         return
     end
-
-    local Tool = Instance.new("Tool")
-    Tool.Name = "THE VOID"
-    Tool.RequiresHandle = true
-    Tool.Parent = Plr.Backpack
     
-    -- Handle Raksasa
-    local Handle = Instance.new("Part")
-    Handle.Name = "Handle"
-    -- Ukuran 50x50x50 cukup besar untuk menutupi layar tanpa dihapus server
-    Handle.Size = Vector3.new(50, 50, 50) 
-    Handle.Shape = Enum.PartType.Block
-    Handle.Color = Color3.fromRGB(0, 0, 0) -- Hitam Pekat
-    Handle.Material = Enum.Material.SmoothPlastic
-    Handle.TopSurface = Enum.SurfaceType.Smooth
-    Handle.BottomSurface = Enum.SurfaceType.Smooth
-    Handle.Massless = true -- Agar tidak berat
-    Handle.CanCollide = false -- Agar tidak nabrak tembok
-    Handle.Parent = Tool
+    local Handle = Tool:FindFirstChild("Handle")
+    if not Handle then
+        VoidBtn.Text = "ITEM TIDAK ADA HANDLE!"
+        wait(1)
+        VoidBtn.Text = "UBAH ITEM JADI VOID"
+        return
+    end
     
-    -- Sound Effect (Optional, biar seram)
+    -- MANIPULASI MESH (INI YANG DILIHAT SERVER)
+    local Mesh = Handle:FindFirstChildOfClass("SpecialMesh")
+    if not Mesh then
+        -- Jika tidak ada mesh, buat baru (Kadang tidak replicate, tapi layak dicoba)
+        Mesh = Instance.new("SpecialMesh")
+        Mesh.Parent = Handle
+        Mesh.MeshType = Enum.MeshType.Sphere -- Bola Hitam
+    end
+    
+    -- PAKSA UKURAN JADI RAKSASA
+    -- Vector3.new(200, 200, 200) adalah ukuran Void
+    Mesh.Scale = Vector3.new(200, 200, 200)
+    
+    -- Ubah warna jadi Hitam (VertexColor)
+    Mesh.VertexColor = Vector3.new(0,0,0) 
+    
+    -- Hapus Texture agar hitam pekat
+    Mesh.TextureId = "" 
+    
+    -- Feedback
+    VoidBtn.Text = "ITEM MENJADI VOID!"
+    
+    -- Sound Effect biar player lain dengar suara glitch
     local Sound = Instance.new("Sound")
-    Sound.SoundId = "rbxassetid://130768399" -- Horror drone sound
-    Sound.Volume = 2
+    Sound.SoundId = "rbxassetid://130768399"
+    Sound.Volume = 1
+    Sound.Looped = true
     Sound.Parent = Handle
-    
-    Tool.Equipped:Connect(function()
-        Sound:Play()
-    end)
-    Tool.Unequipped:Connect(function()
-        Sound:Stop()
-    end)
-
-    VoidBtn.Text = "VOID DITERIMA!"
-    wait(1)
-    VoidBtn.Text = "GET VOID TOOL (HITAM)"
+    Sound:Play()
 end)
 
 -- ====================================================
@@ -386,7 +392,7 @@ CreateBtn("TUTUP GUI", Color3.fromRGB(200, 0, 0), function()
 end)
 
 game.StarterGui:SetCore("SendNotification", {
-    Title = "Zam New V5";
+    Title = "Zam New V6";
     Text = "Made By Gemini Ai!";
     Duration = 5;
 })
