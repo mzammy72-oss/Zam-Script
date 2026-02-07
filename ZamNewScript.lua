@@ -1,6 +1,6 @@
 --[[
-    KELZZ-AI v20.0: REAL VOID REPLICATION
-    FITUR: ITEM RESIZER (FE BLIND), TITAN ZONE 200, FLY
+    KELZZ-AI v22.0: FE CARRIER
+    FITUR: CARRY PLAYER (MAGNET), TITAN ZONE, FLY
     TARGET: ROBLOX MOBILE (A14 OPTIMIZED)
 ]]
 
@@ -13,50 +13,50 @@ local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 
 -- 1. BERSIHKAN GUI LAMA
-if CoreGui:FindFirstChild("KelzzRealVoid") then
-    CoreGui:FindFirstChild("KelzzRealVoid"):Destroy()
+if CoreGui:FindFirstChild("KelzzCarryGui") then
+    CoreGui:FindFirstChild("KelzzCarryGui"):Destroy()
 end
 
 -- 2. GUI BASE
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KelzzRealVoid"
+ScreenGui.Name = "KelzzCarryGui"
 ScreenGui.Parent = CoreGui
 
 -- TOMBOL TOGGLE (Huruf K)
 local OpenBtn = Instance.new("TextButton")
 OpenBtn.Parent = ScreenGui
-OpenBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 120) -- Hijau Neon
 OpenBtn.Position = UDim2.new(0, 10, 0.4, 0)
 OpenBtn.Size = UDim2.new(0, 50, 0, 50)
 OpenBtn.Text = "Z"
 OpenBtn.TextSize = 25
-OpenBtn.TextColor3 = Color3.new(1,1,1)
+OpenBtn.TextColor3 = Color3.new(0,0,0)
 OpenBtn.Font = Enum.Font.SourceSansBold
 OpenBtn.Draggable = true
 Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(1, 0)
-Instance.new("UIStroke", OpenBtn).Color = Color3.new(1,1,1)
+Instance.new("UIStroke", OpenBtn).Color = Color3.new(0,0,0)
 Instance.new("UIStroke", OpenBtn).Thickness = 2
 
 -- MAIN FRAME
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 20, 15)
 MainFrame.Position = UDim2.new(0.2, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 250, 0, 400) 
+MainFrame.Size = UDim2.new(0, 250, 0, 420) 
 MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
-Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(255, 255, 255)
+Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(0, 255, 120)
 Instance.new("UIStroke", MainFrame).Thickness = 2
 
 -- JUDUL
 local Title = Instance.new("TextLabel")
 Title.Parent = MainFrame
-Title.Text = "Zam New V6"
+Title.Text = "Zam New V7"
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(200, 200, 200)
+Title.TextColor3 = Color3.fromRGB(0, 255, 120)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 18
 
@@ -78,6 +78,11 @@ local Flying = false
 local FlySpeed = 50
 local FlyBodyVel = nil
 local FlyConnection = nil
+
+-- CARRY VARIABLES
+local CarryActive = false
+local CarryConnection = nil
+local CarryOffset = -3 -- Default: Di bawah kaki (Mengangkat)
 
 -- === SCROLLING CONTAINER ===
 local ScrollBox = Instance.new("ScrollingFrame")
@@ -148,7 +153,7 @@ local function CreateSlider(Text, Min, Max, Default, Callback)
     Instance.new("UICorner", SliderBg).CornerRadius = UDim.new(1, 0)
     local SliderFill = Instance.new("Frame")
     SliderFill.Parent = SliderBg
-    SliderFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    SliderFill.BackgroundColor3 = Color3.fromRGB(0, 255, 120)
     SliderFill.Size = UDim2.new((Default - Min) / (Max - Min), 0, 1, 0)
     Instance.new("UICorner", SliderFill).CornerRadius = UDim.new(1, 0)
     local Trigger = Instance.new("TextButton")
@@ -176,64 +181,122 @@ local function CreateSlider(Text, Min, Max, Default, Callback)
 end
 
 -- ====================================================
--- BAGIAN 1: REAL VOID REPLICATION (LOGIC BARU)
+-- BAGIAN 1: TARGET SELECTOR (DIPERLUKAN UNTUK CARRY)
 -- ====================================================
-CreateLabel("--- FE VOID (PEGANG ITEM) ---")
-local VoidBtn = CreateBtn("UBAH ITEM JADI VOID", Color3.fromRGB(50, 50, 50), function() end)
+CreateLabel("--- PILIH PEMAIN ---")
+local SelectBtn = CreateBtn("PILIH PLAYER [Klik]", Color3.fromRGB(60, 60, 60), function() end)
 
-VoidBtn.MouseButton1Click:Connect(function()
-    local Char = Plr.Character
-    if not Char then return end
-    
-    local Tool = Char:FindFirstChildOfClass("Tool")
-    if not Tool then
-        VoidBtn.Text = "PEGANG ITEM GAME DULU!"
-        wait(1)
-        VoidBtn.Text = "UBAH ITEM JADI VOID"
-        return
+local PlayerListFrame = Instance.new("ScrollingFrame")
+PlayerListFrame.Parent = MainFrame
+PlayerListFrame.Position = UDim2.new(0.1, 0, 0.15, 0)
+PlayerListFrame.Size = UDim2.new(0.8, 0, 0.6, 0)
+PlayerListFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+PlayerListFrame.Visible = false
+PlayerListFrame.ZIndex = 20
+PlayerListFrame.BorderColor3 = Color3.fromRGB(0, 255, 120)
+PlayerListFrame.BorderSizePixel = 2
+local PList = Instance.new("UIListLayout")
+PList.Parent = PlayerListFrame
+PList.SortOrder = Enum.SortOrder.LayoutOrder
+
+SelectBtn.MouseButton1Click:Connect(function()
+    PlayerListFrame.Visible = not PlayerListFrame.Visible
+    if PlayerListFrame.Visible then
+        for _, v in pairs(PlayerListFrame:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= Plr then
+                local b = Instance.new("TextButton")
+                b.Parent = PlayerListFrame
+                b.Size = UDim2.new(1, 0, 0, 35)
+                b.Text = p.Name
+                b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                b.TextColor3 = Color3.new(1,1,1)
+                b.ZIndex = 21
+                b.MouseButton1Click:Connect(function()
+                    TargetPlayer = p
+                    SelectBtn.Text = "Target: " .. p.Name
+                    PlayerListFrame.Visible = false
+                end)
+            end
+        end
+        PlayerListFrame.CanvasSize = UDim2.new(0, 0, 0, PList.AbsoluteContentSize.Y)
     end
-    
-    local Handle = Tool:FindFirstChild("Handle")
-    if not Handle then
-        VoidBtn.Text = "ITEM TIDAK ADA HANDLE!"
-        wait(1)
-        VoidBtn.Text = "UBAH ITEM JADI VOID"
-        return
-    end
-    
-    -- MANIPULASI MESH (INI YANG DILIHAT SERVER)
-    local Mesh = Handle:FindFirstChildOfClass("SpecialMesh")
-    if not Mesh then
-        -- Jika tidak ada mesh, buat baru (Kadang tidak replicate, tapi layak dicoba)
-        Mesh = Instance.new("SpecialMesh")
-        Mesh.Parent = Handle
-        Mesh.MeshType = Enum.MeshType.Sphere -- Bola Hitam
-    end
-    
-    -- PAKSA UKURAN JADI RAKSASA
-    -- Vector3.new(200, 200, 200) adalah ukuran Void
-    Mesh.Scale = Vector3.new(200, 200, 200)
-    
-    -- Ubah warna jadi Hitam (VertexColor)
-    Mesh.VertexColor = Vector3.new(0,0,0) 
-    
-    -- Hapus Texture agar hitam pekat
-    Mesh.TextureId = "" 
-    
-    -- Feedback
-    VoidBtn.Text = "ITEM MENJADI VOID!"
-    
-    -- Sound Effect biar player lain dengar suara glitch
-    local Sound = Instance.new("Sound")
-    Sound.SoundId = "rbxassetid://130768399"
-    Sound.Volume = 1
-    Sound.Looped = true
-    Sound.Parent = Handle
-    Sound:Play()
 end)
 
 -- ====================================================
--- BAGIAN 2: FLY SYSTEM
+-- BAGIAN 2: CARRY SYSTEM (FE MAGNET)
+-- ====================================================
+CreateLabel("--- CARRY / STICKER ---")
+
+-- Slider Posisi (PENTING)
+-- Range: -10 (Bawah Jauh) sampai 10 (Atas Jauh)
+-- Default: -3 (Di bawah kaki, seolah menggendong)
+CreateSlider("Posisi Y (Tinggi)", -10, 10, -3, function(val)
+    CarryOffset = val
+end)
+
+local CarryBtn = CreateBtn("CARRY: OFF", Color3.fromRGB(60, 60, 60), function() end)
+
+CarryBtn.MouseButton1Click:Connect(function()
+    if not TargetPlayer then
+        SelectBtn.Text = "PILIH TARGET DULU!"
+        wait(1)
+        if TargetPlayer then SelectBtn.Text = "Target: " .. TargetPlayer.Name else SelectBtn.Text = "PILIH PLAYER [Klik]" end
+        return
+    end
+
+    CarryActive = not CarryActive
+    
+    if CarryActive then
+        CarryBtn.Text = "CARRY: ON (MAGNET)"
+        CarryBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+        
+        -- Matikan Fly & Titan Zone agar tidak bentrok
+        if Flying then Flying=false; FlyBtn.Text="FLY: OFF"; if FlyConnection then FlyConnection:Disconnect() end; if FlyBodyVel then FlyBodyVel:Destroy() end; if Plr.Character:FindFirstChild("Humanoid") then Plr.Character.Humanoid.PlatformStand=false end end
+        if AreaActive then AreaActive=false; AreaBtn.Text="ZONA TITAN: OFF"; if AreaConnection then AreaConnection:Disconnect() end; if VisualZone then VisualZone:Destroy() end; if CenterPart then CenterPart:Destroy() end; if Plr.Character:FindFirstChild("Humanoid") then Workspace.CurrentCamera.CameraSubject=Plr.Character.Humanoid end end
+
+        -- LOOP MAGNET (Heartbeat = Tiap Frame Fisika)
+        CarryConnection = RunService.Heartbeat:Connect(function()
+            local MyChar = Plr.Character
+            local TargChar = TargetPlayer.Character
+            
+            if MyChar and TargChar and MyChar:FindFirstChild("HumanoidRootPart") and TargChar:FindFirstChild("HumanoidRootPart") then
+                local MyHRP = MyChar.HumanoidRootPart
+                local TargHRP = TargChar.HumanoidRootPart
+                
+                -- LOGIKA UTAMA: Tempelkan diri ke target
+                -- CFrame Target * Offset Y (Tinggi)
+                -- Kita pakai AssemblyLinearVelocity 0 agar tidak mental
+                MyHRP.CFrame = TargHRP.CFrame * CFrame.new(0, CarryOffset, 0)
+                MyHRP.Velocity = Vector3.new(0,0,0)
+                MyHRP.AssemblyAngularVelocity = Vector3.new(0,0,0)
+                
+                -- Matikan Collisions agar tidak glitch parah
+                for _, p in pairs(MyChar:GetChildren()) do
+                    if p:IsA("BasePart") then p.CanCollide = false end
+                end
+            else
+                -- Jika target mati/keluar
+                CarryActive = false
+                CarryBtn.Text = "TARGET HILANG"
+                if CarryConnection then CarryConnection:Disconnect() end
+                wait(1)
+                CarryBtn.Text = "CARRY: OFF"
+            end
+        end)
+    else
+        CarryBtn.Text = "CARRY: OFF"
+        CarryBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        if CarryConnection then CarryConnection:Disconnect() end
+        -- Reset Fisika
+        if Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart") then
+            Plr.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+        end
+    end
+end)
+
+-- ====================================================
+-- BAGIAN 3: FLY SYSTEM
 -- ====================================================
 CreateLabel("--- FLY CONTROL ---")
 CreateSlider("Fly Speed", 10, 300, 50, function(val) FlySpeed = val end)
@@ -244,6 +307,7 @@ FlyBtn.MouseButton1Click:Connect(function()
     if Flying then
         FlyBtn.Text = "FLY: ON"
         FlyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+        if CarryActive then CarryActive=false; CarryBtn.Text="CARRY: OFF"; if CarryConnection then CarryConnection:Disconnect() end end
         if Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart") then
             local HRP = Plr.Character.HumanoidRootPart
             local Hum = Plr.Character:FindFirstChild("Humanoid")
@@ -275,7 +339,7 @@ FlyBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ====================================================
--- BAGIAN 3: TITAN ZONE (200 STUDS)
+-- BAGIAN 4: TITAN ZONE (200 STUDS)
 -- ====================================================
 CreateLabel("--- TITAN ZONE (200) ---")
 local AreaBtn = CreateBtn("ZONA TITAN: OFF", Color3.fromRGB(60, 60, 60), function() end)
@@ -285,12 +349,8 @@ AreaBtn.MouseButton1Click:Connect(function()
     if AreaActive then
         AreaBtn.Text = "ZONA TITAN: ON"
         AreaBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
-        if Flying then 
-             Flying = false; FlyBtn.Text = "FLY: OFF"; FlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-             if FlyConnection then FlyConnection:Disconnect() end
-             if FlyBodyVel then FlyBodyVel:Destroy() end
-             if Plr.Character:FindFirstChild("Humanoid") then Plr.Character.Humanoid.PlatformStand = false end
-        end
+        if Flying then Flying=false; FlyBtn.Text="FLY: OFF"; if FlyConnection then FlyConnection:Disconnect() end; if FlyBodyVel then FlyBodyVel:Destroy() end; if Plr.Character:FindFirstChild("Humanoid") then Plr.Character.Humanoid.PlatformStand=false end end
+        if CarryActive then CarryActive=false; CarryBtn.Text="CARRY: OFF"; if CarryConnection then CarryConnection:Disconnect() end end
 
         if Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart") then
             if CenterPart then CenterPart:Destroy() end
@@ -358,41 +418,12 @@ AreaBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ====================================================
--- BAGIAN 4: CLICK TP
--- ====================================================
-CreateLabel("--- CLICK TP ---")
-local GetTpBtn = CreateBtn("AMBIL CLICK TP TOOL", Color3.fromRGB(150, 0, 150), function() end)
-GetTpBtn.MouseButton1Click:Connect(function()
-    if Plr.Backpack:FindFirstChild("Click TP") or (Plr.Character and Plr.Character:FindFirstChild("Click TP")) then
-        GetTpBtn.Text = "SUDAH PUNYA!"
-        wait(1)
-        GetTpBtn.Text = "AMBIL CLICK TP TOOL"
-        return
-    end
-    local Tool = Instance.new("Tool")
-    Tool.Name = "Click TP"
-    Tool.RequiresHandle = false
-    Tool.Parent = Plr.Backpack
-    Tool.TextureId = "rbxassetid://494306309"
-    Tool.Activated:Connect(function()
-        local Char = Plr.Character
-        if Char and Char:FindFirstChild("HumanoidRootPart") then
-            local Pos = Mouse.Hit.p
-            Char.HumanoidRootPart.CFrame = CFrame.new(Pos + Vector3.new(0, 4, 0))
-        end
-    end)
-    GetTpBtn.Text = "ALAT DITERIMA!"
-    wait(1)
-    GetTpBtn.Text = "AMBIL CLICK TP TOOL"
-end)
-
 CreateBtn("TUTUP GUI", Color3.fromRGB(200, 0, 0), function()
     ScreenGui:Destroy()
 end)
 
 game.StarterGui:SetCore("SendNotification", {
-    Title = "Zam New V6";
-    Text = "Made By Gemini Ai!";
+    Title = "Zam New V7";
+    Text = "Made By Gemini Ai";
     Duration = 5;
 })
