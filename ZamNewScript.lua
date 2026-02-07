@@ -1,6 +1,6 @@
 --[[
-    KELZZ-AI v18.0: TITAN ZONE
-    FITUR: 200 STUD FLING ZONE, MOBILE FLY, CLICK TP
+    KELZZ-AI v19.0: THE VOID BLIND
+    FITUR: VOID TOOL (FE BLIND), TITAN ZONE 200, FLY
     TARGET: ROBLOX MOBILE (A14 OPTIMIZED)
 ]]
 
@@ -13,19 +13,19 @@ local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 
 -- 1. BERSIHKAN GUI LAMA
-if CoreGui:FindFirstChild("KelzzTitanGui") then
-    CoreGui:FindFirstChild("KelzzTitanGui"):Destroy()
+if CoreGui:FindFirstChild("KelzzVoidGui") then
+    CoreGui:FindFirstChild("KelzzVoidGui"):Destroy()
 end
 
 -- 2. GUI BASE
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KelzzTitanGui"
+ScreenGui.Name = "KelzzVoidGui"
 ScreenGui.Parent = CoreGui
 
 -- TOMBOL TOGGLE (Huruf K)
 local OpenBtn = Instance.new("TextButton")
 OpenBtn.Parent = ScreenGui
-OpenBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 0) -- Oranye Raksasa
+OpenBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Hitam Pekat
 OpenBtn.Position = UDim2.new(0, 10, 0.4, 0)
 OpenBtn.Size = UDim2.new(0, 50, 0, 50)
 OpenBtn.Text = "Z"
@@ -37,26 +37,26 @@ Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(1, 0)
 Instance.new("UIStroke", OpenBtn).Color = Color3.new(1,1,1)
 Instance.new("UIStroke", OpenBtn).Thickness = 2
 
--- MAIN FRAME (SCROLL CONTAINER)
+-- MAIN FRAME
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 MainFrame.Position = UDim2.new(0.2, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 250, 0, 380) 
+MainFrame.Size = UDim2.new(0, 250, 0, 420) 
 MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
-Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(255, 100, 0)
+Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(100, 100, 100)
 Instance.new("UIStroke", MainFrame).Thickness = 2
 
 -- JUDUL
 local Title = Instance.new("TextLabel")
 Title.Parent = MainFrame
-Title.Text = "Zam New V4"
+Title.Text = "Zam New V5"
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(255, 150, 0)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 18
 
@@ -68,9 +68,7 @@ end)
 -- === VARIABLES ===
 local TargetPlayer = nil
 local AreaActive = false
--- [[ PERUBAHAN RADIUS ]] --
-local AreaRange = 200 -- 200 Studs (Diameter 400)
--- [[ END ]] --
+local AreaRange = 200
 local VisualZone = nil
 local CenterPart = nil
 local AreaConnection = nil
@@ -178,7 +176,58 @@ local function CreateSlider(Text, Min, Max, Default, Callback)
 end
 
 -- ====================================================
--- BAGIAN 1: FLY SYSTEM
+-- BAGIAN 1: VOID BLIND (FITUR BARU)
+-- ====================================================
+CreateLabel("--- VOID BLIND (FE) ---")
+local VoidBtn = CreateBtn("GET VOID TOOL (HITAM)", Color3.fromRGB(20, 20, 20), function() end)
+
+VoidBtn.MouseButton1Click:Connect(function()
+    if Plr.Backpack:FindFirstChild("THE VOID") or (Plr.Character and Plr.Character:FindFirstChild("THE VOID")) then
+        VoidBtn.Text = "SUDAH ADA DI INVENTORY!"
+        wait(1)
+        VoidBtn.Text = "GET VOID TOOL (HITAM)"
+        return
+    end
+
+    local Tool = Instance.new("Tool")
+    Tool.Name = "THE VOID"
+    Tool.RequiresHandle = true
+    Tool.Parent = Plr.Backpack
+    
+    -- Handle Raksasa
+    local Handle = Instance.new("Part")
+    Handle.Name = "Handle"
+    -- Ukuran 50x50x50 cukup besar untuk menutupi layar tanpa dihapus server
+    Handle.Size = Vector3.new(50, 50, 50) 
+    Handle.Shape = Enum.PartType.Block
+    Handle.Color = Color3.fromRGB(0, 0, 0) -- Hitam Pekat
+    Handle.Material = Enum.Material.SmoothPlastic
+    Handle.TopSurface = Enum.SurfaceType.Smooth
+    Handle.BottomSurface = Enum.SurfaceType.Smooth
+    Handle.Massless = true -- Agar tidak berat
+    Handle.CanCollide = false -- Agar tidak nabrak tembok
+    Handle.Parent = Tool
+    
+    -- Sound Effect (Optional, biar seram)
+    local Sound = Instance.new("Sound")
+    Sound.SoundId = "rbxassetid://130768399" -- Horror drone sound
+    Sound.Volume = 2
+    Sound.Parent = Handle
+    
+    Tool.Equipped:Connect(function()
+        Sound:Play()
+    end)
+    Tool.Unequipped:Connect(function()
+        Sound:Stop()
+    end)
+
+    VoidBtn.Text = "VOID DITERIMA!"
+    wait(1)
+    VoidBtn.Text = "GET VOID TOOL (HITAM)"
+end)
+
+-- ====================================================
+-- BAGIAN 2: FLY SYSTEM
 -- ====================================================
 CreateLabel("--- FLY CONTROL ---")
 CreateSlider("Fly Speed", 10, 300, 50, function(val) FlySpeed = val end)
@@ -220,98 +269,7 @@ FlyBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ====================================================
--- BAGIAN 2: TARGET TELEPORT
--- ====================================================
-CreateLabel("--- TARGET TELEPORT ---")
-local SelectBtn = CreateBtn("PILIH PLAYER [Klik]", Color3.fromRGB(60, 60, 60), function() end)
-local PlayerListFrame = Instance.new("ScrollingFrame")
-PlayerListFrame.Parent = MainFrame
-PlayerListFrame.Position = UDim2.new(0.1, 0, 0.15, 0)
-PlayerListFrame.Size = UDim2.new(0.8, 0, 0.6, 0)
-PlayerListFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-PlayerListFrame.Visible = false
-PlayerListFrame.ZIndex = 20
-PlayerListFrame.BorderColor3 = Color3.fromRGB(0, 80, 255)
-PlayerListFrame.BorderSizePixel = 2
-local PList = Instance.new("UIListLayout")
-PList.Parent = PlayerListFrame
-PList.SortOrder = Enum.SortOrder.LayoutOrder
-
-SelectBtn.MouseButton1Click:Connect(function()
-    PlayerListFrame.Visible = not PlayerListFrame.Visible
-    if PlayerListFrame.Visible then
-        for _, v in pairs(PlayerListFrame:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= Plr then
-                local b = Instance.new("TextButton")
-                b.Parent = PlayerListFrame
-                b.Size = UDim2.new(1, 0, 0, 35)
-                b.Text = p.Name
-                b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-                b.TextColor3 = Color3.new(1,1,1)
-                b.ZIndex = 21
-                b.MouseButton1Click:Connect(function()
-                    TargetPlayer = p
-                    SelectBtn.Text = "Target: " .. p.Name
-                    PlayerListFrame.Visible = false
-                end)
-            end
-        end
-        PlayerListFrame.CanvasSize = UDim2.new(0, 0, 0, PList.AbsoluteContentSize.Y)
-    end
-end)
-
-CreateBtn("TELEPORT KE TARGET >>", Color3.fromRGB(0, 150, 0), function()
-    if Flying then 
-        FlyBtn.Text = "FLY: OFF"
-        FlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-        Flying = false
-        if FlyConnection then FlyConnection:Disconnect() end
-        if FlyBodyVel then FlyBodyVel:Destroy() end
-        if Plr.Character:FindFirstChild("Humanoid") then Plr.Character.Humanoid.PlatformStand = false end
-    end
-    if TargetPlayer and TargetPlayer.Character and TargetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        if Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart") then
-            Plr.Character.HumanoidRootPart.CFrame = TargetPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
-        end
-    else
-        SelectBtn.Text = "PILIH TARGET DULU!"
-        wait(1)
-        if TargetPlayer then SelectBtn.Text = "Target: " .. TargetPlayer.Name else SelectBtn.Text = "PILIH PLAYER [Klik]" end
-    end
-end)
-
--- ====================================================
--- BAGIAN 3: CLICK TELEPORT
--- ====================================================
-CreateLabel("--- CLICK TP ---")
-local GetTpBtn = CreateBtn("AMBIL CLICK TP TOOL", Color3.fromRGB(150, 0, 150), function() end)
-GetTpBtn.MouseButton1Click:Connect(function()
-    if Plr.Backpack:FindFirstChild("Click TP") or (Plr.Character and Plr.Character:FindFirstChild("Click TP")) then
-        GetTpBtn.Text = "SUDAH PUNYA!"
-        wait(1)
-        GetTpBtn.Text = "AMBIL CLICK TP TOOL"
-        return
-    end
-    local Tool = Instance.new("Tool")
-    Tool.Name = "Click TP"
-    Tool.RequiresHandle = false
-    Tool.Parent = Plr.Backpack
-    Tool.TextureId = "rbxassetid://494306309"
-    Tool.Activated:Connect(function()
-        local Char = Plr.Character
-        if Char and Char:FindFirstChild("HumanoidRootPart") then
-            local Pos = Mouse.Hit.p
-            Char.HumanoidRootPart.CFrame = CFrame.new(Pos + Vector3.new(0, 4, 0))
-        end
-    end)
-    GetTpBtn.Text = "ALAT DITERIMA!"
-    wait(1)
-    GetTpBtn.Text = "AMBIL CLICK TP TOOL"
-end)
-
--- ====================================================
--- BAGIAN 4: TITAN ZONE (200 STUDS)
+-- BAGIAN 3: TITAN ZONE (200 STUDS)
 -- ====================================================
 CreateLabel("--- TITAN ZONE (200) ---")
 local AreaBtn = CreateBtn("ZONA TITAN: OFF", Color3.fromRGB(60, 60, 60), function() end)
@@ -321,7 +279,6 @@ AreaBtn.MouseButton1Click:Connect(function()
     if AreaActive then
         AreaBtn.Text = "ZONA TITAN: ON"
         AreaBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
-        -- Matikan Fly
         if Flying then 
              Flying = false; FlyBtn.Text = "FLY: OFF"; FlyBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
              if FlyConnection then FlyConnection:Disconnect() end
@@ -349,7 +306,7 @@ AreaBtn.MouseButton1Click:Connect(function()
         VisualZone.CFrame = CenterPart.CFrame * CFrame.Angles(0, 0, math.rad(90))
         VisualZone.Color = Color3.fromRGB(255, 0, 0)
         VisualZone.Material = Enum.Material.ForceField
-        VisualZone.Transparency = 0.8 -- Transparency tinggi karena areanya sangat besar
+        VisualZone.Transparency = 0.8
         VisualZone.Anchored = true
         VisualZone.CanCollide = false
         VisualZone.Parent = Workspace
@@ -395,12 +352,41 @@ AreaBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+-- ====================================================
+-- BAGIAN 4: CLICK TP
+-- ====================================================
+CreateLabel("--- CLICK TP ---")
+local GetTpBtn = CreateBtn("AMBIL CLICK TP TOOL", Color3.fromRGB(150, 0, 150), function() end)
+GetTpBtn.MouseButton1Click:Connect(function()
+    if Plr.Backpack:FindFirstChild("Click TP") or (Plr.Character and Plr.Character:FindFirstChild("Click TP")) then
+        GetTpBtn.Text = "SUDAH PUNYA!"
+        wait(1)
+        GetTpBtn.Text = "AMBIL CLICK TP TOOL"
+        return
+    end
+    local Tool = Instance.new("Tool")
+    Tool.Name = "Click TP"
+    Tool.RequiresHandle = false
+    Tool.Parent = Plr.Backpack
+    Tool.TextureId = "rbxassetid://494306309"
+    Tool.Activated:Connect(function()
+        local Char = Plr.Character
+        if Char and Char:FindFirstChild("HumanoidRootPart") then
+            local Pos = Mouse.Hit.p
+            Char.HumanoidRootPart.CFrame = CFrame.new(Pos + Vector3.new(0, 4, 0))
+        end
+    end)
+    GetTpBtn.Text = "ALAT DITERIMA!"
+    wait(1)
+    GetTpBtn.Text = "AMBIL CLICK TP TOOL"
+end)
+
 CreateBtn("TUTUP GUI", Color3.fromRGB(200, 0, 0), function()
     ScreenGui:Destroy()
 end)
 
 game.StarterGui:SetCore("SendNotification", {
-    Title = "Zam New V4";
-    Text = "Made By Gemini Ai";
+    Title = "Zam New V5";
+    Text = "Made By Gemini Ai!";
     Duration = 5;
 })
