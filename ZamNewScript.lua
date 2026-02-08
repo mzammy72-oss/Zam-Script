@@ -1,6 +1,6 @@
 --[[
-    KELZZ-AI v27.0: STEALTH ASSASSIN
-    FITUR: INVISIBLE KILL (HIT & RUN), SELECT TP, FLY
+    Zam New Script
+    FITUR: TITAN ZONE (200 STUDS), SELECT TP, FLY
     TARGET: ROBLOX MOBILE (A14 OPTIMIZED)
 ]]
 
@@ -13,19 +13,19 @@ local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 
 -- 1. BERSIHKAN GUI LAMA
-if CoreGui:FindFirstChild("KelzzStealthGui") then
-    CoreGui:FindFirstChild("KelzzStealthGui"):Destroy()
+if CoreGui:FindFirstChild("KelzzTitanGui") then
+    CoreGui:FindFirstChild("KelzzTitanGui"):Destroy()
 end
 
 -- 2. GUI BASE
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KelzzStealthGui"
+ScreenGui.Name = "KelzzTitanGui"
 ScreenGui.Parent = CoreGui
 
--- TOMBOL TOGGLE (Kecil)
+-- TOMBOL TOGGLE (Kecil di Kiri)
 local OpenBtn = Instance.new("TextButton")
 OpenBtn.Parent = ScreenGui
-OpenBtn.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+OpenBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 0) -- Merah Marun
 OpenBtn.Position = UDim2.new(0, 10, 0.4, 0)
 OpenBtn.Size = UDim2.new(0, 45, 0, 45)
 OpenBtn.Text = "Z"
@@ -34,29 +34,29 @@ OpenBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 OpenBtn.Font = Enum.Font.GothamBold
 OpenBtn.Draggable = true
 Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(1, 0)
-Instance.new("UIStroke", OpenBtn).Color = Color3.fromRGB(255, 255, 255)
+Instance.new("UIStroke", OpenBtn).Color = Color3.fromRGB(255, 0, 0)
 Instance.new("UIStroke", OpenBtn).Thickness = 2
 
--- MAIN FRAME
+-- MAIN FRAME (SCROLLABLE & COMPACT)
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 10, 10)
 MainFrame.Position = UDim2.new(0.2, 0, 0.25, 0)
-MainFrame.Size = UDim2.new(0, 240, 0, 350) 
+MainFrame.Size = UDim2.new(0, 240, 0, 320) -- Ukuran Pas
 MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
-Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(80, 80, 80)
+Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(255, 50, 50)
 Instance.new("UIStroke", MainFrame).Thickness = 2
 
 -- JUDUL
 local Title = Instance.new("TextLabel")
 Title.Parent = MainFrame
-Title.Text = "Zam new V9"
+Title.Text = "TITAN v28"
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(200, 200, 200)
+Title.TextColor3 = Color3.fromRGB(255, 100, 100)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
 
@@ -70,7 +70,7 @@ local ScrollBox = Instance.new("ScrollingFrame")
 ScrollBox.Parent = MainFrame
 ScrollBox.Position = UDim2.new(0, 5, 0, 35)
 ScrollBox.Size = UDim2.new(1, -10, 1, -40)
-ScrollBox.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+ScrollBox.BackgroundColor3 = Color3.fromRGB(20, 15, 15)
 ScrollBox.BackgroundTransparency = 1
 ScrollBox.ScrollBarThickness = 3
 ScrollBox.AutomaticCanvasSize = Enum.AutomaticSize.Y 
@@ -90,10 +90,11 @@ UIPad.PaddingBottom = UDim.new(0, 5)
 
 -- === VARIABLES ===
 local TargetPlayer = nil
-local SafeCFrame = nil
-local GhostPart = nil
-local AssassinActive = false
-local AssassinLoop = nil
+local AreaActive = false
+local AreaRange = 200 -- 200 STUDS (SANGAT LUAS)
+local VisualZone = nil
+local CenterPart = nil
+local AreaConnection = nil
 
 local Flying = false
 local FlySpeed = 50
@@ -107,7 +108,7 @@ local function CreateLabel(Text)
     L.Text = Text
     L.Size = UDim2.new(1, 0, 0, 20)
     L.BackgroundTransparency = 1
-    L.TextColor3 = Color3.fromRGB(120, 120, 120)
+    L.TextColor3 = Color3.fromRGB(150, 150, 150)
     L.Font = Enum.Font.GothamBold
     L.TextSize = 12
 end
@@ -147,7 +148,7 @@ local function CreateSlider(Text, Min, Max, Default, Callback)
     Instance.new("UICorner", SliderBg).CornerRadius = UDim.new(1, 0)
     local SliderFill = Instance.new("Frame")
     SliderFill.Parent = SliderBg
-    SliderFill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    SliderFill.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
     SliderFill.Size = UDim2.new((Default - Min) / (Max - Min), 0, 1, 0)
     Instance.new("UICorner", SliderFill).CornerRadius = UDim.new(1, 0)
     local Trigger = Instance.new("TextButton")
@@ -175,115 +176,109 @@ local function CreateSlider(Text, Min, Max, Default, Callback)
 end
 
 -- ====================================================
--- BAGIAN 1: INVISIBLE KILL (HIT & RUN)
+-- FITUR 1: TITAN ZONE (200 STUDS) - PENGGANTI STEALTH
 -- ====================================================
-CreateLabel("--- INVISIBLE KILL ---")
-local KillBtn = CreateBtn("STEALTH MODE: OFF", Color3.fromRGB(50, 50, 50), function() end)
+CreateLabel("--- ZONA MAUT (200) ---")
+local AreaBtn = CreateBtn("TITAN ZONE: OFF", Color3.fromRGB(50, 50, 50), function() end)
 
-KillBtn.MouseButton1Click:Connect(function()
-    AssassinActive = not AssassinActive
-    
-    if AssassinActive then
-        KillBtn.Text = "STEALTH MODE: ON (HUNTING)"
-        KillBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Merah Gelap
+AreaBtn.MouseButton1Click:Connect(function()
+    AreaActive = not AreaActive
+    if AreaActive then
+        AreaBtn.Text = "TITAN ZONE: ON (ACTIVE)"
+        AreaBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0) -- Merah Maut
         
-        -- 1. SIMPAN POSISI AMAN (MARKAS)
+        -- 1. Matikan Fly jika aktif (Biar tidak bentrok)
+        if Flying then 
+             Flying = false; FlyBtn.Text = "FLY: OFF"; FlyBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+             if FlyConnection then FlyConnection:Disconnect() end
+             if FlyBodyVel then FlyBodyVel:Destroy() end
+             if Plr.Character:FindFirstChild("Humanoid") then Plr.Character.Humanoid.PlatformStand = false end
+        end
+
+        -- 2. SETUP CENTER (Markas)
         if Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart") then
-            SafeCFrame = Plr.Character.HumanoidRootPart.CFrame
+            if CenterPart then CenterPart:Destroy() end
+            CenterPart = Instance.new("Part")
+            CenterPart.Name = "KelzzCenter"
+            CenterPart.Size = Vector3.new(1,1,1)
+            CenterPart.Anchored = true
+            CenterPart.CanCollide = false
+            CenterPart.Transparency = 1
+            CenterPart.CFrame = Plr.Character.HumanoidRootPart.CFrame
+            CenterPart.Parent = Workspace
             
-            -- Buat Part Dummy untuk Kamera
-            if GhostPart then GhostPart:Destroy() end
-            GhostPart = Instance.new("Part")
-            GhostPart.Name = "KelzzGhost"
-            GhostPart.Size = Vector3.new(1,1,1)
-            GhostPart.Anchored = true
-            GhostPart.CanCollide = false
-            GhostPart.Transparency = 0.5 -- Setengah transparan biar kita tau posisinya
-            GhostPart.Color = Color3.fromRGB(0, 255, 0)
-            GhostPart.Material = Enum.Material.Neon
-            GhostPart.CFrame = SafeCFrame
-            GhostPart.Parent = Workspace
-            
-            -- Kunci Kamera ke Dummy (Biar kita gak pusing liat char kita teleport)
-            Workspace.CurrentCamera.CameraSubject = GhostPart
-            
-            -- Bikin Karakter Asli Invisible (Di layar kita)
-            for _, v in pairs(Plr.Character:GetDescendants()) do
-                if v:IsA("BasePart") then v.Transparency = 0.8; v.CanCollide = false end
-                if v:IsA("Decal") then v.Transparency = 1 end
-            end
-        else
-            AssassinActive = false
+            -- Kunci Kamera ke Markas (Agar visual stabil)
+            Workspace.CurrentCamera.CameraSubject = CenterPart 
+        else 
+            AreaActive = false 
             return 
         end
+
+        -- 3. VISUAL ZONA (Lingkaran Merah Besar)
+        if VisualZone then VisualZone:Destroy() end
+        VisualZone = Instance.new("Part")
+        VisualZone.Shape = Enum.PartType.Cylinder
+        VisualZone.Size = Vector3.new(0.5, AreaRange * 2, AreaRange * 2)
+        VisualZone.CFrame = CenterPart.CFrame * CFrame.Angles(0, 0, math.rad(90))
+        VisualZone.Color = Color3.fromRGB(255, 0, 0)
+        VisualZone.Material = Enum.Material.ForceField
+        VisualZone.Transparency = 0.8 -- Sangat transparan agar tidak mengganggu
+        VisualZone.Anchored = true
+        VisualZone.CanCollide = false
+        VisualZone.Parent = Workspace
         
-        -- 2. LOOP PEMBUNUHAN (HIT & RUN)
-        task.spawn(function()
-            while AssassinActive do
-                local Char = Plr.Character
-                if not Char or not Char:FindFirstChild("HumanoidRootPart") then wait(1) continue end
-                local HRP = Char.HumanoidRootPart
-                
-                -- Cari Musuh Terdekat dari GhostPart (Bukan dari badan asli yg lagi jalan2)
-                local ClosestEnemy = nil
-                local ClosestDist = 500 -- Max Range cari musuh
-                
-                for _, p in pairs(Players:GetPlayers()) do
-                    if p ~= Plr and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                        local Dist = (GhostPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
-                        if Dist < ClosestDist then
-                            ClosestDist = Dist
-                            ClosestEnemy = p.Character.HumanoidRootPart
-                        end
-                    end
+        -- 4. LOOP SERANGAN MULTI-TARGET
+        local TargetIndex = 1
+        AreaConnection = RunService.Heartbeat:Connect(function()
+            local HRP = Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart")
+            if not HRP then return end
+            
+            -- Cari SEMUA musuh dalam radius
+            local Enemies = {}
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= Plr and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    local Dist = (CenterPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
+                    if Dist <= AreaRange then table.insert(Enemies, p.Character.HumanoidRootPart) end
                 end
+            end
+            
+            if #Enemies > 0 then
+                -- Ganti target setiap frame (Sangat Cepat)
+                TargetIndex = TargetIndex + 1
+                if TargetIndex > #Enemies then TargetIndex = 1 end
+                local TargetRoot = Enemies[TargetIndex]
                 
-                if ClosestEnemy then
-                    -- FASE SERANGAN:
-                    -- 1. Teleport ke Musuh
-                    HRP.CFrame = ClosestEnemy.CFrame
-                    
-                    -- 2. Putar Badan (Fling)
-                    HRP.Velocity = Vector3.new(0,0,0)
-                    HRP.AssemblyAngularVelocity = Vector3.new(0, 30000, 0)
-                    
-                    -- 3. Tunggu sangat sebentar (Blink)
-                    task.wait(0.05) -- Hanya 0.05 detik di dekat musuh!
-                    
-                    -- 4. KEMBALI KE SAFE ZONE (PENTING AGAR NAMETAG HILANG)
-                    HRP.CFrame = SafeCFrame
-                    HRP.AssemblyAngularVelocity = Vector3.new(0,0,0)
-                    HRP.Velocity = Vector3.new(0,0,0)
-                else
-                    -- Kalau gak ada musuh, diam di Safe Zone
-                    HRP.CFrame = SafeCFrame
-                    HRP.AssemblyAngularVelocity = Vector3.new(0,0,0)
-                end
+                -- Teleport SERANG
+                HRP.CFrame = TargetRoot.CFrame
                 
-                task.wait(0.1) -- Delay antar serangan
+                -- Fisika Fling
+                HRP.Velocity = Vector3.new(0, 0, 0) 
+                HRP.AssemblyAngularVelocity = Vector3.new(0, 30000, 0) -- Rotasi Ekstrem
+                
+                -- Noclip (Tembus Tembok)
+                for _, part in pairs(Plr.Character:GetChildren()) do if part:IsA("BasePart") then part.CanCollide = false end end
+            else
+                -- Tidak ada musuh? Diam di tengah
+                HRP.AssemblyAngularVelocity = Vector3.new(0,0,0)
+                HRP.Velocity = Vector3.new(0,0,0)
+                HRP.CFrame = CenterPart.CFrame
             end
         end)
     else
-        KillBtn.Text = "STEALTH MODE: OFF"
-        KillBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        -- MATIKAN FITUR
+        AreaBtn.Text = "TITAN ZONE: OFF"
+        AreaBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
         
-        -- Matikan Fitur
-        if GhostPart then GhostPart:Destroy() end
+        if AreaConnection then AreaConnection:Disconnect() end
+        if VisualZone then VisualZone:Destroy() end
+        if CenterPart then CenterPart:Destroy() end
         
-        -- Balikin Kamera ke Badan Asli
-        if Plr.Character and Plr.Character:FindFirstChild("Humanoid") then
-            Workspace.CurrentCamera.CameraSubject = Plr.Character.Humanoid
+        -- Balikin Kamera ke Karakter
+        if Plr.Character:FindFirstChild("Humanoid") then 
+            Workspace.CurrentCamera.CameraSubject = Plr.Character.Humanoid 
         end
         
-        -- Balikin Transparansi Badan
-        if Plr.Character then
-            for _, v in pairs(Plr.Character:GetDescendants()) do
-                if v:IsA("BasePart") then v.Transparency = 0; v.CanCollide = true end
-                if v:IsA("Decal") then v.Transparency = 0 end
-            end
-        end
-        
-        -- Stop Fisika Fling
+        -- Reset Fisika
         if Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart") then
              Plr.Character.HumanoidRootPart.AssemblyAngularVelocity = Vector3.new(0,0,0)
              Plr.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
@@ -292,9 +287,9 @@ KillBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ====================================================
--- BAGIAN 2: TELEPORT TO SELECTED
+-- FITUR 2: TELEPORT TARGET
 -- ====================================================
-CreateLabel("--- TELEPORT TARGET ---")
+CreateLabel("--- TP SELECTED ---")
 local SelectBtn = CreateBtn("PILIH PLAYER [Klik]", Color3.fromRGB(40, 40, 40), function() end)
 
 local PlayerListFrame = Instance.new("ScrollingFrame")
@@ -304,7 +299,7 @@ PlayerListFrame.Size = UDim2.new(0.9, 0, 0.6, 0)
 PlayerListFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 PlayerListFrame.Visible = false
 PlayerListFrame.ZIndex = 20
-PlayerListFrame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+PlayerListFrame.BorderColor3 = Color3.fromRGB(255, 50, 50)
 PlayerListFrame.BorderSizePixel = 1
 local PList = Instance.new("UIListLayout")
 PList.Parent = PlayerListFrame
@@ -335,12 +330,11 @@ SelectBtn.MouseButton1Click:Connect(function()
 end)
 
 CreateBtn("TELEPORT KE TARGET >>", Color3.fromRGB(0, 100, 200), function()
-    -- Matikan Stealth saat TP manual
-    if AssassinActive then 
-        AssassinActive = false
-        KillBtn.Text = "STEALTH MODE: OFF"
-        KillBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        if GhostPart then GhostPart:Destroy() end
+    if AreaActive then 
+        AreaActive=false; AreaBtn.Text="TITAN ZONE: OFF"; AreaBtn.BackgroundColor3=Color3.fromRGB(50,50,50)
+        if AreaConnection then AreaConnection:Disconnect() end
+        if VisualZone then VisualZone:Destroy() end
+        if CenterPart then CenterPart:Destroy() end
         if Plr.Character:FindFirstChild("Humanoid") then Workspace.CurrentCamera.CameraSubject = Plr.Character.Humanoid end
     end
     
@@ -356,7 +350,7 @@ CreateBtn("TELEPORT KE TARGET >>", Color3.fromRGB(0, 100, 200), function()
 end)
 
 -- ====================================================
--- BAGIAN 3: FLY SYSTEM
+-- FITUR 3: FLY SYSTEM
 -- ====================================================
 CreateLabel("--- FLY CONTROL ---")
 CreateSlider("Fly Speed", 10, 300, 50, function(val) FlySpeed = val end)
@@ -367,6 +361,14 @@ FlyBtn.MouseButton1Click:Connect(function()
     if Flying then
         FlyBtn.Text = "FLY: ON"
         FlyBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+        if AreaActive then 
+             AreaActive=false; AreaBtn.Text="TITAN ZONE: OFF"; AreaBtn.BackgroundColor3=Color3.fromRGB(50,50,50)
+             if AreaConnection then AreaConnection:Disconnect() end
+             if VisualZone then VisualZone:Destroy() end
+             if CenterPart then CenterPart:Destroy() end
+             if Plr.Character:FindFirstChild("Humanoid") then Workspace.CurrentCamera.CameraSubject = Plr.Character.Humanoid end
+        end
+
         if Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart") then
             local HRP = Plr.Character.HumanoidRootPart
             local Hum = Plr.Character:FindFirstChild("Humanoid")
@@ -402,7 +404,7 @@ CreateBtn("TUTUP MENU", Color3.fromRGB(150, 0, 0), function()
 end)
 
 game.StarterGui:SetCore("SendNotification", {
-    Title = "Zam New V9";
-    Text = "Made By Gemini Ai.";
+    Title = "Zam New Script";
+    Text = "Made By Gemini Ai";
     Duration = 5;
 })
