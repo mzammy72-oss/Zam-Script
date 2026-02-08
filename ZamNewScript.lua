@@ -1,6 +1,6 @@
 --[[
-    KELZZ-AI v22.0: FE CARRIER
-    FITUR: CARRY PLAYER (MAGNET), TITAN ZONE, FLY
+    KELZZ-AI v23.0: MODULE KELP (FPS MELTER)
+    FITUR: LAG AURA (VFX SPAM), TITAN ZONE, FLY
     TARGET: ROBLOX MOBILE (A14 OPTIMIZED)
 ]]
 
@@ -13,50 +13,50 @@ local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 
 -- 1. BERSIHKAN GUI LAMA
-if CoreGui:FindFirstChild("KelzzCarryGui") then
-    CoreGui:FindFirstChild("KelzzCarryGui"):Destroy()
+if CoreGui:FindFirstChild("KelzzKelpGui") then
+    CoreGui:FindFirstChild("KelzzKelpGui"):Destroy()
 end
 
 -- 2. GUI BASE
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KelzzCarryGui"
+ScreenGui.Name = "KelzzKelpGui"
 ScreenGui.Parent = CoreGui
 
 -- TOMBOL TOGGLE (Huruf K)
 local OpenBtn = Instance.new("TextButton")
 OpenBtn.Parent = ScreenGui
-OpenBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 120) -- Hijau Neon
+OpenBtn.BackgroundColor3 = Color3.fromRGB(130, 0, 255) -- Ungu Gelap (Kelp)
 OpenBtn.Position = UDim2.new(0, 10, 0.4, 0)
 OpenBtn.Size = UDim2.new(0, 50, 0, 50)
 OpenBtn.Text = "Z"
 OpenBtn.TextSize = 25
-OpenBtn.TextColor3 = Color3.new(0,0,0)
+OpenBtn.TextColor3 = Color3.new(1,1,1)
 OpenBtn.Font = Enum.Font.SourceSansBold
 OpenBtn.Draggable = true
 Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(1, 0)
-Instance.new("UIStroke", OpenBtn).Color = Color3.new(0,0,0)
+Instance.new("UIStroke", OpenBtn).Color = Color3.new(1,1,1)
 Instance.new("UIStroke", OpenBtn).Thickness = 2
 
 -- MAIN FRAME
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 20, 15)
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 0, 20)
 MainFrame.Position = UDim2.new(0.2, 0, 0.2, 0)
-MainFrame.Size = UDim2.new(0, 250, 0, 420) 
+MainFrame.Size = UDim2.new(0, 250, 0, 400) 
 MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
-Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(0, 255, 120)
+Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(130, 0, 255)
 Instance.new("UIStroke", MainFrame).Thickness = 2
 
 -- JUDUL
 local Title = Instance.new("TextLabel")
 Title.Parent = MainFrame
-Title.Text = "Zam New V7"
+Title.Text = "Zam New V8"
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(0, 255, 120)
+Title.TextColor3 = Color3.fromRGB(200, 100, 255)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 18
 
@@ -79,10 +79,8 @@ local FlySpeed = 50
 local FlyBodyVel = nil
 local FlyConnection = nil
 
--- CARRY VARIABLES
-local CarryActive = false
-local CarryConnection = nil
-local CarryOffset = -3 -- Default: Di bawah kaki (Mengangkat)
+-- LAG AURA VARIABLES
+local LagAuraActive = false
 
 -- === SCROLLING CONTAINER ===
 local ScrollBox = Instance.new("ScrollingFrame")
@@ -108,7 +106,7 @@ UIPad.PaddingTop = UDim.new(0, 5)
 UIPad.PaddingBottom = UDim.new(0, 5)
 
 -- ====================================================
--- FUNGSI PEMBUAT UI
+-- FUNGSI UI
 -- ====================================================
 local function CreateLabel(Text)
     local L = Instance.new("TextLabel")
@@ -153,7 +151,7 @@ local function CreateSlider(Text, Min, Max, Default, Callback)
     Instance.new("UICorner", SliderBg).CornerRadius = UDim.new(1, 0)
     local SliderFill = Instance.new("Frame")
     SliderFill.Parent = SliderBg
-    SliderFill.BackgroundColor3 = Color3.fromRGB(0, 255, 120)
+    SliderFill.BackgroundColor3 = Color3.fromRGB(130, 0, 255)
     SliderFill.Size = UDim2.new((Default - Min) / (Max - Min), 0, 1, 0)
     Instance.new("UICorner", SliderFill).CornerRadius = UDim.new(1, 0)
     local Trigger = Instance.new("TextButton")
@@ -181,122 +179,68 @@ local function CreateSlider(Text, Min, Max, Default, Callback)
 end
 
 -- ====================================================
--- BAGIAN 1: TARGET SELECTOR (DIPERLUKAN UNTUK CARRY)
+-- BAGIAN 1: FPS MELTER (LAG AURA)
 -- ====================================================
-CreateLabel("--- PILIH PEMAIN ---")
-local SelectBtn = CreateBtn("PILIH PLAYER [Klik]", Color3.fromRGB(60, 60, 60), function() end)
+CreateLabel("--- LAG AURA (FPS MELTER) ---")
+local LagBtn = CreateBtn("LAG AURA: OFF", Color3.fromRGB(60, 60, 60), function() end)
 
-local PlayerListFrame = Instance.new("ScrollingFrame")
-PlayerListFrame.Parent = MainFrame
-PlayerListFrame.Position = UDim2.new(0.1, 0, 0.15, 0)
-PlayerListFrame.Size = UDim2.new(0.8, 0, 0.6, 0)
-PlayerListFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-PlayerListFrame.Visible = false
-PlayerListFrame.ZIndex = 20
-PlayerListFrame.BorderColor3 = Color3.fromRGB(0, 255, 120)
-PlayerListFrame.BorderSizePixel = 2
-local PList = Instance.new("UIListLayout")
-PList.Parent = PlayerListFrame
-PList.SortOrder = Enum.SortOrder.LayoutOrder
-
-SelectBtn.MouseButton1Click:Connect(function()
-    PlayerListFrame.Visible = not PlayerListFrame.Visible
-    if PlayerListFrame.Visible then
-        for _, v in pairs(PlayerListFrame:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= Plr then
-                local b = Instance.new("TextButton")
-                b.Parent = PlayerListFrame
-                b.Size = UDim2.new(1, 0, 0, 35)
-                b.Text = p.Name
-                b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-                b.TextColor3 = Color3.new(1,1,1)
-                b.ZIndex = 21
-                b.MouseButton1Click:Connect(function()
-                    TargetPlayer = p
-                    SelectBtn.Text = "Target: " .. p.Name
-                    PlayerListFrame.Visible = false
-                end)
-            end
-        end
-        PlayerListFrame.CanvasSize = UDim2.new(0, 0, 0, PList.AbsoluteContentSize.Y)
-    end
-end)
-
--- ====================================================
--- BAGIAN 2: CARRY SYSTEM (FE MAGNET)
--- ====================================================
-CreateLabel("--- CARRY / STICKER ---")
-
--- Slider Posisi (PENTING)
--- Range: -10 (Bawah Jauh) sampai 10 (Atas Jauh)
--- Default: -3 (Di bawah kaki, seolah menggendong)
-CreateSlider("Posisi Y (Tinggi)", -10, 10, -3, function(val)
-    CarryOffset = val
-end)
-
-local CarryBtn = CreateBtn("CARRY: OFF", Color3.fromRGB(60, 60, 60), function() end)
-
-CarryBtn.MouseButton1Click:Connect(function()
-    if not TargetPlayer then
-        SelectBtn.Text = "PILIH TARGET DULU!"
-        wait(1)
-        if TargetPlayer then SelectBtn.Text = "Target: " .. TargetPlayer.Name else SelectBtn.Text = "PILIH PLAYER [Klik]" end
-        return
-    end
-
-    CarryActive = not CarryActive
+LagBtn.MouseButton1Click:Connect(function()
+    LagAuraActive = not LagAuraActive
     
-    if CarryActive then
-        CarryBtn.Text = "CARRY: ON (MAGNET)"
-        CarryBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-        
-        -- Matikan Fly & Titan Zone agar tidak bentrok
-        if Flying then Flying=false; FlyBtn.Text="FLY: OFF"; if FlyConnection then FlyConnection:Disconnect() end; if FlyBodyVel then FlyBodyVel:Destroy() end; if Plr.Character:FindFirstChild("Humanoid") then Plr.Character.Humanoid.PlatformStand=false end end
-        if AreaActive then AreaActive=false; AreaBtn.Text="ZONA TITAN: OFF"; if AreaConnection then AreaConnection:Disconnect() end; if VisualZone then VisualZone:Destroy() end; if CenterPart then CenterPart:Destroy() end; if Plr.Character:FindFirstChild("Humanoid") then Workspace.CurrentCamera.CameraSubject=Plr.Character.Humanoid end end
+    local Char = Plr.Character
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+    local HRP = Char.HumanoidRootPart
 
-        -- LOOP MAGNET (Heartbeat = Tiap Frame Fisika)
-        CarryConnection = RunService.Heartbeat:Connect(function()
-            local MyChar = Plr.Character
-            local TargChar = TargetPlayer.Character
-            
-            if MyChar and TargChar and MyChar:FindFirstChild("HumanoidRootPart") and TargChar:FindFirstChild("HumanoidRootPart") then
-                local MyHRP = MyChar.HumanoidRootPart
-                local TargHRP = TargChar.HumanoidRootPart
-                
-                -- LOGIKA UTAMA: Tempelkan diri ke target
-                -- CFrame Target * Offset Y (Tinggi)
-                -- Kita pakai AssemblyLinearVelocity 0 agar tidak mental
-                MyHRP.CFrame = TargHRP.CFrame * CFrame.new(0, CarryOffset, 0)
-                MyHRP.Velocity = Vector3.new(0,0,0)
-                MyHRP.AssemblyAngularVelocity = Vector3.new(0,0,0)
-                
-                -- Matikan Collisions agar tidak glitch parah
-                for _, p in pairs(MyChar:GetChildren()) do
-                    if p:IsA("BasePart") then p.CanCollide = false end
-                end
-            else
-                -- Jika target mati/keluar
-                CarryActive = false
-                CarryBtn.Text = "TARGET HILANG"
-                if CarryConnection then CarryConnection:Disconnect() end
-                wait(1)
-                CarryBtn.Text = "CARRY: OFF"
-            end
-        end)
+    if LagAuraActive then
+        LagBtn.Text = "LAG AURA: ON (HEAVY)"
+        LagBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        
+        -- BUAT EFEK VISUAL BERAT
+        -- Kita spam 20 Particle Emitter berbeda
+        for i = 1, 20 do
+            local PE = Instance.new("ParticleEmitter")
+            PE.Name = "KelzzLagVFX"
+            PE.Texture = "rbxassetid://296874871" -- Tekstur berat (Smoke/Dust)
+            PE.Rate = 1000 -- Spam rate maksimal
+            PE.Lifetime = NumberRange.new(10, 20) -- Partikel hidup lama
+            PE.Speed = NumberRange.new(10, 50)
+            PE.SpreadAngle = Vector2.new(360, 360)
+            PE.Size = NumberSequence.new(5, 10) -- Ukuran besar
+            PE.Transparency = NumberSequence.new(0.8, 0.9) -- Transparan biar layar kita gak buta total
+            PE.Color = ColorSequence.new(Color3.new(math.random(), math.random(), math.random()))
+            PE.Parent = HRP
+        end
+        
+        -- Spam Cahaya (Shadow Update Lag)
+        local Light = Instance.new("PointLight")
+        Light.Name = "KelzzLagLight"
+        Light.Range = 60
+        Light.Brightness = 100
+        Light.Shadows = true -- Shadows bikin lag parah
+        Light.Parent = HRP
+        
+        -- Notif
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "KELP MODULE ACTIVE";
+            Text = "FPS Melter Engaged. Dekati musuh!";
+            Duration = 3;
+        })
+        
     else
-        CarryBtn.Text = "CARRY: OFF"
-        CarryBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-        if CarryConnection then CarryConnection:Disconnect() end
-        -- Reset Fisika
-        if Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart") then
-            Plr.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+        LagBtn.Text = "LAG AURA: OFF"
+        LagBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        
+        -- Hapus Efek
+        for _, obj in pairs(HRP:GetChildren()) do
+            if obj.Name == "KelzzLagVFX" or obj.Name == "KelzzLagLight" then
+                obj:Destroy()
+            end
         end
     end
 end)
 
 -- ====================================================
--- BAGIAN 3: FLY SYSTEM
+-- BAGIAN 2: FLY SYSTEM
 -- ====================================================
 CreateLabel("--- FLY CONTROL ---")
 CreateSlider("Fly Speed", 10, 300, 50, function(val) FlySpeed = val end)
@@ -307,7 +251,6 @@ FlyBtn.MouseButton1Click:Connect(function()
     if Flying then
         FlyBtn.Text = "FLY: ON"
         FlyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-        if CarryActive then CarryActive=false; CarryBtn.Text="CARRY: OFF"; if CarryConnection then CarryConnection:Disconnect() end end
         if Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart") then
             local HRP = Plr.Character.HumanoidRootPart
             local Hum = Plr.Character:FindFirstChild("Humanoid")
@@ -339,7 +282,7 @@ FlyBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ====================================================
--- BAGIAN 4: TITAN ZONE (200 STUDS)
+-- BAGIAN 3: TITAN ZONE (200 STUDS)
 -- ====================================================
 CreateLabel("--- TITAN ZONE (200) ---")
 local AreaBtn = CreateBtn("ZONA TITAN: OFF", Color3.fromRGB(60, 60, 60), function() end)
@@ -350,7 +293,6 @@ AreaBtn.MouseButton1Click:Connect(function()
         AreaBtn.Text = "ZONA TITAN: ON"
         AreaBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
         if Flying then Flying=false; FlyBtn.Text="FLY: OFF"; if FlyConnection then FlyConnection:Disconnect() end; if FlyBodyVel then FlyBodyVel:Destroy() end; if Plr.Character:FindFirstChild("Humanoid") then Plr.Character.Humanoid.PlatformStand=false end end
-        if CarryActive then CarryActive=false; CarryBtn.Text="CARRY: OFF"; if CarryConnection then CarryConnection:Disconnect() end end
 
         if Plr.Character and Plr.Character:FindFirstChild("HumanoidRootPart") then
             if CenterPart then CenterPart:Destroy() end
@@ -423,7 +365,7 @@ CreateBtn("TUTUP GUI", Color3.fromRGB(200, 0, 0), function()
 end)
 
 game.StarterGui:SetCore("SendNotification", {
-    Title = "Zam New V7";
-    Text = "Made By Gemini Ai";
+    Title = "Zam New V8";
+    Text = "Made By Gemini Ai.";
     Duration = 5;
 })
